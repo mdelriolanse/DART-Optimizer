@@ -1,0 +1,7 @@
+diagnostics/
+*.swp
+*.ipynb_checkpoints
+*.pyc
+*.pyo
+*.txt
+__pycache__/
