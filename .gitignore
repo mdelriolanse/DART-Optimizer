@@ -4,4 +4,7 @@ diagnostics/
 *.pyc
 *.pyo
 *.txt
+*.egg
+*.egg-info
+
 __pycache__/
