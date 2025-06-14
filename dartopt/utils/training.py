@@ -67,7 +67,9 @@ class Trainer():
                 optimizer.zero_grad(set_to_none=True) # reset gradients
                 loss.backward(retain_graph=True) # compute gradients for all 128 samples
 
-                optimizer.step(loss) # apply weight update and pass loss
+                layer_gradients = model._compile_model_grads()
+                
+                optimizer.step(layer_gradients) # apply weight update and pass loss
     
                 losses.append(loss.to('cpu'))
             self.store_training_history(history=training_history,
