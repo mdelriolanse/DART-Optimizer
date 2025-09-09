@@ -1,16 +1,19 @@
 import torch
 
 def get_accelerator():
-
-    assert torch.accelerator.is_available(), "No available accelerators detected."
-
+    """
+    Get the best available accelerator device.
+    
+    Returns:
+        torch.device: The best available device (cuda, mps, xpu, mtia, or cpu)
+    """
     if torch.cuda.is_available():
-        torch.set_default_device("cuda")
-    elif torch.mtia.is_available():
-        torch.set_default_device("mtia")
-    elif torch.xpu.is_available():
-        torch.set_default_device("xpu")
-    elif torch.mps.is_available():
-        torch.set_default_device("mps")
-
-    return torch.get_default_device()
+        return torch.device("cuda")
+    elif hasattr(torch, 'mps') and torch.mps.is_available():
+        return torch.device("mps")
+    elif hasattr(torch, 'xpu') and torch.xpu.is_available():
+        return torch.device("xpu")
+    elif hasattr(torch, 'mtia') and torch.mtia.is_available():
+        return torch.device("mtia")
+    else:
+        return torch.device("cpu")

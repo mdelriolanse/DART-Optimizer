@@ -13,9 +13,11 @@ class MLP(nn.Module):
         self.relu = nn.ReLU()
 
         # Fit model on cpu or available accelerator.
-        if torch.device is None:
+        if device is None:
             self.device = get_accelerator()
-            self.to(self.device)
+        else:
+            self.device = device
+        self.to(self.device)
 
     def _compile_model_grads(self):
         modules_grads = {}
