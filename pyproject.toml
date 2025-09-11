@@ -1,3 +1,59 @@
 [build-system]
-requires = ["setuptools"]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "dartopt"
+dynamic = ["version"]
+description = "DART: Dirichlet Adaptive Random Tuning Optimizer for Deep Learning"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Mateo del Rio", email = "mateo@example.com"}
+]
+maintainers = [
+    {name = "Mateo del Rio", email = "mateo@example.com"}
+]
+keywords = ["optimization", "deep learning", "pytorch", "dirichlet", "adaptive learning rates"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=1.9.0",
+    "numpy>=1.19.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=6.0",
+    "pytest-cov",
+    "black",
+    "flake8",
+    "mypy",
+]
+
+[project.urls]
+Homepage = "https://github.com/maticos-dev/dart-optimizer"
+Repository = "https://github.com/maticos-dev/dart-optimizer"
+Documentation = "https://github.com/maticos-dev/dart-optimizer#readme"
+"Bug Tracker" = "https://github.com/maticos-dev/dart-optimizer/issues"
+
+[tool.setuptools_scm]
+write_to = "dartopt/_version.py"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["dartopt*"]
+exclude = ["tests*"]
