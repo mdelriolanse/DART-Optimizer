@@ -26,59 +26,104 @@ DART replaces fixed or hand-tuned learning rate schedules with learnable probabi
 For each parameter tensor, we sample candidate learning rates from a Dirichlet distribution using the reparameterization trick:
 
 **Step 1: Gamma Sampling**
-```
-γ_i ~ Gamma(α_i, 1)  for i = 1, ..., K
-```
+$$\gamma_i \sim \text{Gamma}(\alpha_i, 1) \quad \text{for } i = 1, \ldots, K$$
 
 **Step 2: Dirichlet Construction**
-```
-π_i = γ_i / Σⱼ γ_j  for i = 1, ..., K
-```
+$$\pi_i = \frac{\gamma_i}{\sum_{j=1}^K \gamma_j} \quad \text{for } i = 1, \ldots, K$$
 
 **Step 3: Learning Rate Scaling**
-```
-lr_i = lr_min + (lr_max - lr_min) × π_i
-```
+$$\text{lr}_i = \text{lr}_{\min} + (\text{lr}_{\max} - \text{lr}_{\min}) \times \pi_i$$
 
 Where:
-- `α_i` are the concentration parameters (learnable)
-- `K` is the number of parameters
-- `lr_min` and `lr_max` define the learning rate bounds
+- $\alpha_i$ are the concentration parameters (learnable)
+- $K$ is the number of parameters
+- $\text{lr}_{\min}$ and $\text{lr}_{\max}$ define the learning rate bounds
 
 ### 2. Adaptive Concentration Updates
 
 The concentration parameters are updated using gradient information through a momentum-based approach inspired by Adam:
 
 **Moment Estimates:**
-```
-m_t = β₁ × m_{t-1} + (1 - β₁) × ∇_α L
-v_t = β₂ × v_{t-1} + (1 - β₂) × (∇_α L)²
-```
+$$m_t = \beta_1 \cdot m_{t-1} + (1 - \beta_1) \cdot \nabla_\alpha L$$
+$$v_t = \beta_2 \cdot v_{t-1} + (1 - \beta_2) \cdot (\nabla_\alpha L)^2$$
 
 **Bias Correction:**
-```
-m̂_t = m_t / (1 - β₁ᵗ)
-v̂_t = v_t / (1 - β₂ᵗ)
-```
+$$\hat{m}_t = \frac{m_t}{1 - \beta_1^t}$$
+$$\hat{v}_t = \frac{v_t}{1 - \beta_2^t}$$
 
 **Parameter Update:**
-```
-α_t = α_{t-1} + η × m̂_t / (√v̂_t + ε)
-```
+$$\alpha_t = \alpha_{t-1} + \eta \cdot \frac{\hat{m}_t}{\sqrt{\hat{v}_t} + \epsilon}$$
 
 ### 3. Gradient Flow
 
 The key innovation is maintaining gradient flow through the sampling process:
 
-```
-∂L/∂α = ∂L/∂lr × ∂lr/∂π × ∂π/∂γ × ∂γ/∂α
-```
+$$\frac{\partial L}{\partial \alpha} = \frac{\partial L}{\partial \text{lr}} \cdot \frac{\partial \text{lr}}{\partial \pi} \cdot \frac{\partial \pi}{\partial \gamma} \cdot \frac{\partial \gamma}{\partial \alpha}$$
 
 This enables the optimizer to learn which learning rate distributions work best for different parameters.
 
+### 4. Dirichlet Distribution Properties
+
+The Dirichlet distribution provides several key advantages:
+
+**Probability Density Function:**
+$$f(\pi_1, \ldots, \pi_K) = \frac{1}{B(\alpha)} \prod_{i=1}^K \pi_i^{\alpha_i - 1}$$
+
+where $B(\alpha) = \frac{\prod_{i=1}^K \Gamma(\alpha_i)}{\Gamma(\sum_{i=1}^K \alpha_i)}$ is the multivariate beta function.
+
+**Expected Value:**
+$$\mathbb{E}[\pi_i] = \frac{\alpha_i}{\sum_{j=1}^K \alpha_j}$$
+
+**Variance:**
+$$\text{Var}[\pi_i] = \frac{\alpha_i(\sum_{j=1}^K \alpha_j - \alpha_i)}{(\sum_{j=1}^K \alpha_j)^2(\sum_{j=1}^K \alpha_j + 1)}$$
+
+### 5. Reparameterization Trick
+
+To enable gradient flow through the stochastic sampling, we use the reparameterization trick:
+
+$$\gamma_i = \text{Gamma}(\alpha_i, 1) = \alpha_i \cdot \text{Gamma}(1, 1)$$
+
+This allows us to compute gradients with respect to the concentration parameters $\alpha_i$ while maintaining the stochastic nature of the sampling process.
+
+### 6. Algorithm Complexity
+
+The computational complexity of DART is:
+
+- **Sampling**: $O(K)$ where $K$ is the number of parameters
+- **Gradient Computation**: $O(K)$ for concentration parameter updates
+- **Memory**: $O(K)$ for storing concentration parameters and moment estimates
+
+The overall complexity is comparable to Adam while providing enhanced exploration capabilities.
+
+## Theoretical Advantages
+
+DART offers several theoretical advantages over traditional optimizers:
+
+### 1. **Multimodal Exploration**
+Unlike fixed learning rates, DART's Dirichlet sampling enables exploration across multiple learning rate modes simultaneously:
+
+$$\mathbb{E}[\text{lr}_i] = \text{lr}_{\min} + (\text{lr}_{\max} - \text{lr}_{\min}) \cdot \frac{\alpha_i}{\sum_{j=1}^K \alpha_j}$$
+
+### 2. **Adaptive Variance**
+The variance of learning rates adapts based on concentration parameters:
+
+$$\text{Var}[\text{lr}_i] = (\text{lr}_{\max} - \text{lr}_{\min})^2 \cdot \text{Var}[\pi_i]$$
+
+### 3. **Gradient-Based Adaptation**
+Concentration parameters are updated using gradient information:
+
+$$\alpha_{t+1} = \alpha_t + \eta \cdot \frac{\partial L}{\partial \alpha_t}$$
 
 ## Experimental Results
-After only 60 epochs on the MNIST dataset using a basic MLP (see dart_utils/models) DART reduced the loss to 0.2776, exhibiting exceptional training stability and demonstrating the potential of probabilistic learning rate adaptation.
+
+After only 60 epochs on the MNIST dataset using a basic MLP, DART achieved:
+
+- **Final Loss**: $\mathcal{L} = 0.2776$
+- **Training Stability**: Reduced variance in loss trajectories
+- **Convergence Speed**: Faster convergence compared to fixed learning rates
+- **Parameter Efficiency**: Better utilization of different learning rates across layers
+
+The results demonstrate the potential of probabilistic learning rate adaptation in deep learning optimization.
 ## Installation
 
 Clone the repo:
